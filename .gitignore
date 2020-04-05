@@ -1,0 +1,5 @@
+.vscode
+env
+files
+**/__pycache__
+__pycache__
