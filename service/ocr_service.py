@@ -76,6 +76,7 @@ class Ocr():
         """ Extrai, pelo o tesseract, o texto do pdf escaneado """
         hocr_list = []
         images = []
+        page_i = 0
         numPages = self.getNumberPages(pdf_path)
         for initalpage in range(1, numPages+self.batch, self.batch):
             pages = pdf2image.convert_from_path(pdf_path,
@@ -84,12 +85,27 @@ class Ocr():
                                                     initalpage+self.batch-1, numPages),
                                                 output_folder=self.images_path,
                                                 grayscale='true',
+                                                dpi=300,
                                                 fmt='tif')
             for page in pages:
+                page_i = page_i + 1
                 hocr_bytes = pytesseract.image_to_pdf_or_hocr(page, 
-                                                                lang='por',
+                                                                lang='por+eng',
                                                                 extension='hocr',
-                                                                config='--psm 1')
+                                                                config='--psm 1 --oem 1')
+
+                # Corrige os ids com o número da página       
+                hocr_bytes = hocr_bytes.replace(b'class=\'ocr_page\' id=\'page_1',
+                                    b'class=\'ocr_page\' id=\'page_%d' % (page_i))
+                hocr_bytes = hocr_bytes.replace(b'class=\'ocr_carea\' id=\'block_1_',
+                                    b'class=\'ocr_carea\' id=\'block_%d_' % (page_i))
+                hocr_bytes = hocr_bytes.replace(b'class=\'ocr_par\' id=\'par_1_',
+                                    b'class=\'ocr_par\' id=\'par_%d_' % (page_i))
+                hocr_bytes = hocr_bytes.replace(b' id=\'line_1_',
+                                    b' id=\'line_%d_' % (page_i))
+                hocr_bytes = hocr_bytes.replace(b'class=\'ocrx_word\' id=\'word_1_',
+                                    b'class=\'ocrx_word\' id=\'word_%d_' % (page_i))
+
                 hocr_list.append(hocr_bytes)
                 images.append(page.filename)
                 page.close()
