@@ -136,4 +136,8 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+
 service/totocr/.vscode/settings.json
+service/totocr/test_data/tot_enaval_test.xml
+service/totocr/test_data/tot_enaval_test_searchable.pdf
