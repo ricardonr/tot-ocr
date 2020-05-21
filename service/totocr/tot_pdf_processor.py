@@ -43,7 +43,8 @@ class PdfProcessor():
             img_np = numpy.array(img)
 
             # Pré-processamento
-            img_pre = preprocess(img_np)
+            #img_pre = preprocess(img_np)
+            img_pre = img_np
             
             # Processa OCR
             hocr = OcrTesseract(img_pre, lang=self.ocr_lang, config=self.ocr_config)
