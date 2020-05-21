@@ -1,13 +1,12 @@
 # Python imports
 from io import BytesIO
-from lxml import etree
 import os
 
 # External imports
-import pdf2image
-import pytesseract
-import fitz
+from lxml import etree
+import fitz  #pyMuPdf
 from PIL import Image
+import numpy
 
 # ToT imports
 from ocr.Totocr import OcrTesseract
@@ -40,16 +39,29 @@ class PdfProcessor():
         tot_info = '' # JSON com dados extraídos 
         doc = fitz.open(pdf_path)
 
-        for page,page_i in enumerate(doc):
+        for page_i,page in enumerate(doc):
             # Extrai imagem
             pix = page.getPixmap(matrix = self.zoom) # zoom define o dpi usado
             img = Image.open(BytesIO(pix.getImageData()))
+            img_np = numpy.array(img)
 
             # Pré-processamento
-            img_pre = preprocess(img)
+            img_pre = preprocess(img_np)
             
             # Processa OCR
-            hocr = OcrTesseract(img_pre, lang=self.ocr_lang, config=self.ocr_config, page_num=page_i)
+            hocr = OcrTesseract(img_pre, lang=self.ocr_lang, config=self.ocr_config)
+            # Corrige os ids com o número da página  
+            #hocr = hocr.decode('UTF-8')          
+            hocr = hocr.replace(b'class=\'ocr_page\' id=\'page_1',
+                                b'class=\'ocr_page\' id=\'page_%d' % (page_i))
+            hocr = hocr.replace(b'class=\'ocr_carea\' id=\'block_1_',
+                                b'class=\'ocr_carea\' id=\'block_%d_' % (page_i))
+            hocr = hocr.replace(b'class=\'ocr_par\' id=\'par_1_',
+                                b'class=\'ocr_par\' id=\'par_%d_' % (page_i))
+            hocr = hocr.replace(b' id=\'line_1_',
+                                b' id=\'line_%d_' % (page_i))
+            hocr = hocr.replace(b'class=\'ocrx_word\' id=\'word_1_',
+                                b'class=\'ocrx_word\' id=\'word_%d_' % (page_i))
             hocr_list.append(hocr)
 
             # Pós-processamento
@@ -62,11 +74,11 @@ class PdfProcessor():
             # Extração de formulário
 
             # Extração de  assinaturas
-            # signatures = extractSignatures(img_pre)
+            signatures = extractSignatures(img_pre)
 
             # Extração de carimbos
         
-        # Combina as páginas individuais em um único hocr
+        # Combina as páginas individuais em um único hocr e salva
         hocr_final = self.combineHocr(hocr_list)
         with open(hocr_path,"w+") as f:
             f.write(hocr_final.decode('UTF-8'))
@@ -85,6 +97,16 @@ class PdfProcessor():
             pages = doc2.xpath("//*[@class='ocr_page']")
             for page in pages:
                 container.append(page)
+        hocr_str = etree.tostring(doc, pretty_print=True)
 
-        return doc
-         
+        return hocr_str
+
+# Teste     
+if __name__ == "__main__":
+    pdf = "./test_data/tot_enaval_test.pdf" #input
+    hocr = "./test_data/tot_enaval_test.xml" #output
+    out = "./test_data/tot_enaval_test_searchable.pdf" #output
+    
+    p = PdfProcessor()
+    p.process(pdf,hocr)
+    p.searchable(pdf,hocr,out)
