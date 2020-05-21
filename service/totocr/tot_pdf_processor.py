@@ -13,6 +13,7 @@ from ocr.Totocr import OcrTesseract
 from ocr.preprocess import preprocess_enaval_form as preprocess
 from stamp_detection.signature_extractor import extractSignatures
 from ocr.searchable import make_pdfsearchable
+import ocr.hocr_tools as hocr_tools
 
 class PdfProcessor():
     """ Classe que processa um PDF escaneado"""
@@ -48,7 +49,7 @@ class PdfProcessor():
             
             # Processa OCR
             hocr = OcrTesseract(img_pre, lang=self.ocr_lang, config=self.ocr_config)
-            hocr = self.setPageNum(hocr,page_i)
+            hocr = hocr_tools.set_page_num(hocr,page_i)
             hocr_list.append(hocr)
 
             # Pós-processamento
@@ -66,7 +67,7 @@ class PdfProcessor():
             # Extração de carimbos
         
         # Combina as páginas individuais em um único hocr e salva
-        hocr_final = self.combineHocr(hocr_list)
+        hocr_final = hocr_tools.combine_hocr(hocr_list)
         with open(hocr_path,"w+") as f:
             f.write(hocr_final.decode('UTF-8'))
             f.close()
@@ -76,36 +77,7 @@ class PdfProcessor():
     def searchable(self,pdf_fname,hocr_fname,output_fname):
         make_pdfsearchable(pdf_fname,hocr_fname,output_fname)
 
-    def combineHocr(self, hocrs: list):
-        """ Combina multiplas páginas hocrs individuais em um único hocr """
-        doc=etree.fromstring(hocrs[0])
-        pages = doc.xpath("//*[@class='ocr_page']")
-        container = pages[-1].getparent()
-
-        for hocr in hocrs[1:]:
-            doc2 = etree.fromstring(hocr)
-            pages = doc2.xpath("//*[@class='ocr_page']")
-            for page in pages:
-                container.append(page)
-        hocr_str = etree.tostring(doc, pretty_print=True)
-
-        return hocr_str
-
-    def setPageNum(self,hocr_str,page_i):
-        """ Altera o número da página do hocr"""
-        # Corrige os ids com o número da página  
-        #hocr = hocr.decode('UTF-8')          
-        hocr = hocr_str.replace(b'class=\'ocr_page\' id=\'page_1',
-                            b'class=\'ocr_page\' id=\'page_%d' % (page_i))
-        hocr = hocr.replace(b'class=\'ocr_carea\' id=\'block_1_',
-                            b'class=\'ocr_carea\' id=\'block_%d_' % (page_i))
-        hocr = hocr.replace(b'class=\'ocr_par\' id=\'par_1_',
-                            b'class=\'ocr_par\' id=\'par_%d_' % (page_i))
-        hocr = hocr.replace(b' id=\'line_1_',
-                            b' id=\'line_%d_' % (page_i))
-        hocr = hocr.replace(b'class=\'ocrx_word\' id=\'word_1_',
-                            b'class=\'ocrx_word\' id=\'word_%d_' % (page_i))
-        return hocr
+    
 
 # Teste     
 if __name__ == "__main__":

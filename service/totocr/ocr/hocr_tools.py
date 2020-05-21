@@ -15,3 +15,19 @@ def combine_hocr(hocrs):
 
     hocr_str = etree.tostring(doc, pretty_print=True)
     return hocr_str
+
+def set_page_num(hocr_str,page_i):
+    """ Altera o número da página do hocr"""
+    # Corrige os ids com o número da página  
+    #hocr = hocr.decode('UTF-8')          
+    hocr = hocr_str.replace(b'class=\'ocr_page\' id=\'page_1',
+                        b'class=\'ocr_page\' id=\'page_%d' % (page_i))
+    hocr = hocr.replace(b'class=\'ocr_carea\' id=\'block_1_',
+                        b'class=\'ocr_carea\' id=\'block_%d_' % (page_i))
+    hocr = hocr.replace(b'class=\'ocr_par\' id=\'par_1_',
+                        b'class=\'ocr_par\' id=\'par_%d_' % (page_i))
+    hocr = hocr.replace(b' id=\'line_1_',
+                        b' id=\'line_%d_' % (page_i))
+    hocr = hocr.replace(b'class=\'ocrx_word\' id=\'word_1_',
+                        b'class=\'ocrx_word\' id=\'word_%d_' % (page_i))
+    return hocr
