@@ -31,3 +31,33 @@ def set_page_num(hocr_str,page_i):
     hocr = hocr.replace(b'class=\'ocrx_word\' id=\'word_1_',
                         b'class=\'ocrx_word\' id=\'word_%d_' % (page_i))
     return hocr
+
+def clean_hocr(hocr):
+    # Remove palavras inúteis (vazias ou só com espaços)
+    
+    pages = hocr.findall(".//*[@class='ocr_page']") 
+    for page in pages:
+        areas = page.findall(".//*[@class='ocr_carea']") 
+        for area in areas:
+            pars = area.findall(".//*[@class='ocr_par']") 
+            for par in pars:
+                lines = (par.findall(".//*[@class='ocr_line']") + 
+                        par.findall(".//*[@class='ocr_textfloat']") +
+                        par.findall(".//*[@class='ocr_caption']") +
+                        par.findall(".//*[@class='ocr_header']"))
+                for line in lines:
+                    words = line.findall(".//*[@class='ocrx_word']")
+                    for word in words:
+                        # palavra vazia, remove
+                        if word.text is None or word.text == ' ' or word.text == '  ' or word.text == '   ' or word.text == '    ' or word.text == '     ': 
+                            line.remove(word)
+                    if len(line) == 0:
+                        par.remove(line)
+                if len(par)==0:
+                    area.remove(par)
+            if len(area)==0:
+                page.remove(area)
+        if len(page)==0:
+            pass # não remove página
+
+    return hocr          
