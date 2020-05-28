@@ -14,6 +14,7 @@ from ocr.preprocess import preprocess_enaval_form as preprocess
 from stamp_detection.signature_extractor import extractSignatures
 from ocr.searchable import make_pdfsearchable
 import ocr.hocr_tools as hocr_tools
+from ocr.hocr_from_searchable import isSearchable, createHocrFromSearchable
 
 class PdfProcessor():
     """ Classe que processa um PDF escaneado"""
@@ -48,8 +49,14 @@ class PdfProcessor():
             img_pre = img_np
             
             # Processa OCR
-            hocr = OcrTesseract(img_pre, lang=self.ocr_lang, config=self.ocr_config)
-            hocr = hocr_tools.set_page_num(hocr,page_i)
+            if isSearchable(page) is True:
+                # Gera hocr a partir de pdf searchable
+                hocr = createHocrFromSearchable(page, page_i)
+            else:
+                # Processa OCR
+                hocr = OcrTesseract(img_pre, lang=self.ocr_lang, config=self.ocr_config)
+                hocr = hocr_tools.set_page_num(hocr,page_i)
+
             hocr_list.append(hocr)
 
             # Pós-processamento
@@ -81,9 +88,9 @@ class PdfProcessor():
 
 # Teste     
 if __name__ == "__main__":
-    pdf = "./test_data/tot_enaval_test.pdf" #input
-    hocr = "./test_data/tot_enaval_test.xml" #output
-    out = "./test_data/tot_enaval_test_searchable.pdf" #output
+    pdf = "/home/laura/Workspace/tot-ocr/test_data/3_page2.pdf" #input
+    out = "/home/laura/Workspace/tot-ocr/test_data/3_page2_searchable.pdf" #output
+    hocr = "/home/laura/Workspace/tot-ocr/test_data/3_page2.xml" #output
     
     p = PdfProcessor()
     p.process(pdf,hocr)
