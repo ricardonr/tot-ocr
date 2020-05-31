@@ -35,12 +35,14 @@ def make_pdfsearchable(pdf_fname,hocr_fname,output_fname,dpi=300):
                 box_width = ( float(bbox['right']) - float(bbox['left']) ) * 72/dpi  
                 
                 # Estima fontesize e a matriz para esticar o texto de forma que se enquadre na bbox
+                start_point = fitz.Point(float(bbox['left']) * 72/dpi,float(bbox['botton']) * 72/dpi)
                 fontsize = math.ceil(box_height*1.2) # estimado
+                if start_point[1]-fontsize < 0: # topo do texto sai da página
+                     fontsize = start_point[1]
                 text_length = fitz.getTextlength(word.text,fontsize=fontsize) # comprimento do texto
                 morph = fitz.Matrix(box_width/text_length,1) # matriz para dar zoom no eixo x do texto
 
                 # Insere o texto na página
-                start_point = fitz.Point(float(bbox['left']) * 72/dpi,float(bbox['botton']) * 72/dpi)
                 doc_page.insertText(start_point,word.text,render_mode=3,fontsize=fontsize,morph=(start_point,morph)) #render_mode=3 -> invisible
                  
     # Salva o novo pdf
