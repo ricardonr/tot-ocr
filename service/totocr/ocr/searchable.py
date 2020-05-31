@@ -35,7 +35,7 @@ def make_pdfsearchable(pdf_fname,hocr_fname,output_fname,dpi=300):
                 box_width = ( float(bbox['right']) - float(bbox['left']) ) * 72/dpi  
                 
                 # Estima fontesize e a matriz para esticar o texto de forma que se enquadre na bbox
-                fontsize = math.ceil(box_height*1.2) # estimado
+                fontsize = math.ceil(box_height*1) # estimado
                 text_length = fitz.getTextlength(word.text,fontsize=fontsize) # comprimento do texto
                 morph = fitz.Matrix(box_width/text_length,1) # matriz para dar zoom no eixo x do texto
 
