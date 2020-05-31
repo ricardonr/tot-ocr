@@ -34,8 +34,9 @@ def set_page_num(hocr_str,page_i):
 
 def clean_hocr(hocr):
     # Remove palavras inúteis (vazias ou só com espaços)
-    
-    pages = hocr.findall(".//*[@class='ocr_page']") 
+
+    doc=etree.fromstring(hocr)
+    pages = doc.findall(".//*[@class='ocr_page']") 
     for page in pages:
         areas = page.findall(".//*[@class='ocr_carea']") 
         for area in areas:
@@ -60,4 +61,5 @@ def clean_hocr(hocr):
         if len(page)==0:
             pass # não remove página
 
-    return hocr          
+    hocr_clean = etree.tostring(doc)
+    return hocr_clean
