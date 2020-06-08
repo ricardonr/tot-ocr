@@ -23,7 +23,6 @@ def make_pdfsearchable(pdf_fname,hocr_fname,output_fname,dpi=300):
     # Itera sobre elementos de texto do hocr
     for page_num,page in enumerate(pages):
         t = page.get('title')
-        print(page_num)
         doc_page = pdf.loadPage(page_num)
         words = page.findall(".//*[@class='ocrx_word']")
         for word in words:
@@ -31,20 +30,38 @@ def make_pdfsearchable(pdf_fname,hocr_fname,output_fname,dpi=300):
                 # Extrai a bounding box da palavra
                 t = word.get("title")
                 bbox = re1.search(t).groupdict()
+                
                 box_height = ( float(bbox['botton']) - float(bbox['top']) ) * 72/dpi 
                 box_width = ( float(bbox['right']) - float(bbox['left']) ) * 72/dpi  
+
+                # Corrige valores negativos
+                if box_width < 0:
+                    box_width *= -1
+                if box_height < 0:
+                    box_height *= -1
+
+                # Verifica se a página está rotacionada e gera o start_point com base nisso
+                if doc_page.rotation == 90 or doc_page.rotation == 270:
+                    start_point = fitz.Point(float(bbox['top']) * 72/dpi,float(bbox['left']) * 72/dpi)
+                else:
+                    start_point = fitz.Point(float(bbox['left']) * 72/dpi,float(bbox['botton']) * 72/dpi)
                 
                 # Estima fontesize e a matriz para esticar o texto de forma que se enquadre na bbox
-                start_point = fitz.Point(float(bbox['left']) * 72/dpi,float(bbox['botton']) * 72/dpi)
-                fontsize = math.ceil(box_height*1.2) # estimado
+                if word.get("fontsize") != None:
+                    fontsize = float(word.get("fontsize"))
+                else:
+                    fontsize = math.ceil(box_height*1.2) # estimado
+
                 if start_point[1]-fontsize < 0: # topo do texto sai da página
                      fontsize = start_point[1]
                 text_length = fitz.getTextlength(word.text,fontsize=fontsize) # comprimento do texto
-                morph = fitz.Matrix(box_width/text_length,1) # matriz para dar zoom no eixo x do texto
 
-                # Insere o texto na página
-                doc_page.insertText(start_point,word.text,render_mode=3,fontsize=fontsize,morph=(start_point,morph)) #render_mode=3 -> invisible
-                 
+                # Verificação para evitar bugs
+                if text_length != 0.0:
+                    morph = fitz.Matrix(box_width/text_length,1) # matriz para dar zoom no eixo x do texto
+                    # Insere o texto na página
+                    doc_page.insertText(start_point,word.text,rotate=doc_page.rotation,render_mode=2,fontsize=fontsize,morph=(start_point,morph)) #render_mode=3 -> invisible
+
     # Salva o novo pdf
     pdf.save(output_fname)
     pdf.close()

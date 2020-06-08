@@ -37,7 +37,7 @@ class PdfProcessor():
         hocr_list = []
         tot_info = '' # JSON com dados extraídos 
         doc = fitz.open(pdf_path)
-
+        
         for page_i,page in enumerate(doc):
             # Extrai imagem
             pix = page.getPixmap(matrix = self.zoom) # zoom define o dpi usado
@@ -88,10 +88,39 @@ class PdfProcessor():
 
 # Teste     
 if __name__ == "__main__":
-    pdf = "/home/laura/Workspace/tot-ocr/test_data/3_page2.pdf" #input
-    out = "/home/laura/Workspace/tot-ocr/test_data/3_page2_searchable.pdf" #output
-    hocr = "/home/laura/Workspace/tot-ocr/test_data/3_page2.xml" #output
+    # pdf = "/home/laura/Workspace/tot-ocr/test_data/3_page2.pdf" #input
+    # out = "/home/laura/Workspace/tot-ocr/test_data/3_page2_searchable.pdf" #output
+    # hocr = "/home/laura/Workspace/tot-ocr/test_data/3_page2.xml" #output
     
     p = PdfProcessor()
+    # p.process(pdf,hocr)
+    # p.searchable(pdf,hocr,out)
+
+    # pdf = "/home/laura/Workspace/tot-ocr/test_data/18_page33.pdf" #input
+    # out = "/home/laura/Workspace/tot-ocr/test_data/18_page33_searchable.pdf" #output
+    # hocr = "/home/laura/Workspace/tot-ocr/test_data/18_page33.xml" #output
+    
+    # p.process(pdf,hocr)
+    # p.searchable(pdf,hocr,out)
+
+    # pdf = "/home/laura/Workspace/tot-ocr/test_data/2_page8.pdf" #input
+    # out = "/home/laura/Workspace/tot-ocr/test_data/2_page8_searchable.pdf" #output
+    # hocr = "/home/laura/Workspace/tot-ocr/test_data/2_page8.xml" #output
+    
+    # p.process(pdf,hocr)
+    # p.searchable(pdf,hocr,out)
+
+    # pdf = "/home/laura/Workspace/tot-ocr/test_data/15_page13.pdf" #input
+    # out = "/home/laura/Workspace/tot-ocr/test_data/15_page13_searchable.pdf" #output
+    # hocr = "/home/laura/Workspace/tot-ocr/test_data/15_page13.xml" #output
+    
+    # p.process(pdf,hocr)
+    # p.searchable(pdf,hocr,out)
+
+    pdf = "/home/laura/Workspace/tot-ocr/test_data/22_page1.pdf" #input
+    out = "/home/laura/Workspace/tot-ocr/test_data/22_page1_searchable.pdf" #output
+    hocr = "/home/laura/Workspace/tot-ocr/test_data/22_page1.xml" #output
+    
     p.process(pdf,hocr)
     p.searchable(pdf,hocr,out)
+
